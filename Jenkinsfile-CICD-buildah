@@ -20,7 +20,7 @@ pipeline {
         }
       }
     }
-    stage('Build and Test') { steps { sh 'mvn -B package'; junit 'target/surefire-reports/*.xml' } }
+    stage('Build and Test') { steps { sh 'mvn -B -o package'; junit 'target/surefire-reports/*.xml' } }
     stage('Image Build and Push') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'skala-image-registry-id', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
