@@ -1,0 +1,8 @@
+.git
+.gradle
+build
+auth
+.env
+.cloud.env
+.DS_Store
+target/*.jar.original

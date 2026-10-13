@@ -1,0 +1,52 @@
+pipeline {
+  agent any
+  environment {
+    GIT_URL = 'https://github.com/codemillss/myfirst-api-server.git'
+    IMAGE_REGISTRY_URL = 'skala-registry.skala-ai.com'
+    IMAGE_BASE = 'skala-registry.skala-ai.com/class-9/sk304-webserver'
+    BUILDER = 'buildah'
+    DEPLOY_MODE = 'direct'
+  }
+  options { disableConcurrentBuilds(); timestamps(); timeout(time: 20, unit: 'MINUTES'); buildDiscarder(logRotator(numToKeepStr: '10')) }
+  
+  stages {
+    stage('Clone Repository') {
+      steps {
+        git branch: 'main', url: env.GIT_URL, credentialsId: 'skala-github-id'
+        script {
+          def commit = sh(script: 'git rev-parse --short=7 HEAD', returnStdout: true).trim()
+          env.FINAL_IMAGE_TAG = "1.0-${env.BUILDER}-${env.JOB_BASE_NAME}-${env.BUILD_NUMBER}-${commit}"
+          env.IMAGE_REF = "${env.IMAGE_BASE}:${env.FINAL_IMAGE_TAG}"
+        }
+      }
+    }
+    stage('Build and Test') { steps { sh 'mvn -B package'; junit 'target/surefire-reports/*.xml' } }
+    stage('Image Build and Push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'skala-image-registry-id', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+          sh 'sh ci/build-image.sh'
+        }
+      }
+    }
+    stage('Deploy to Kubernetes') {
+      when { expression { env.DEPLOY_MODE == 'direct' } }
+      steps {
+        sh '''
+          set -eu
+          (cd kustomize/overlays/dev && kustomize edit set image "$IMAGE_BASE=$IMAGE_REF")
+          kustomize build kustomize/overlays/dev | kubectl apply -n class-9 -f -
+          kubectl rollout status deployment/sk304-myfirst-api-server -n class-9 --timeout=180s
+        '''
+      }
+    }
+    stage('GitOps Update') {
+      when { expression { env.DEPLOY_MODE == 'gitops' } }
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'skala-github-id', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+          sh 'sh ci/gitops-update.sh'
+        }
+      }
+    }
+  }
+  post { always { deleteDir() } }
+}
