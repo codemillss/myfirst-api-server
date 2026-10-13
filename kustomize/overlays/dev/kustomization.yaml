@@ -19,4 +19,4 @@ patches:
 images:
 - name: skala-registry.skala-ai.com/class-9/sk304-webserver
   newName: skala-registry.skala-ai.com/class-9/sk304-webserver
-  newTag: 1.0-docker-sk304-ci-docker-1-9e5a54f
+  newTag: 1.0-docker-sk304-ci-docker-scm-1-9e5a54f
