@@ -27,7 +27,7 @@ spec:
       terminationGracePeriodSeconds: 20
       containers:
         - name: myfirst-api-server
-          image: skala-registry.skala-ai.com/class-9/sk304-webserver:1.0-buildkit-sk304-ci-buildkit-scm-1-9e5a54f
+          image: skala-registry.skala-ai.com/class-9/sk304-webserver:1.0-docker-sk304-poll-1-9e5a54f
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
