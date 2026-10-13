@@ -50,3 +50,7 @@ kubectl apply -f k8s/service.yaml
 - Service 이름은 반드시 **`backend`** 여야 합니다. `03.frontend`의 nginx 설정이 `http://backend:8080`으로 프록시하도록 고정되어 있기 때문입니다.
 - Service는 `ClusterIP`이므로 클러스터 밖에서는 직접 접근할 수 없습니다. 외부에서 접근하는 진입점(Ingress)은 `03.frontend`에만 있으며, 03.frontend(nginx)가 이 Service(`backend:8080`)로 API 요청을 전달하는 구조입니다.
 - Liveness/Readiness probe는 Actuator의 `/actuator/health/liveness`, `/actuator/health/readiness`를 사용합니다.
+
+## CI/CD 실습
+
+Jenkins는 테스트 후 Docker, Buildah, BuildKit으로 이미지를 빌드합니다. CI는 gitops 브랜치의 이미지 버전을 갱신하며 ArgoCD가 배포를 동기화합니다.
